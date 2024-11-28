@@ -4,6 +4,7 @@
 Tool to produce different wavelets
 """
 # Requested modules
+import sys
 import matplotlib as mpl
 #mpl.use('Agg') # de-comment if pyplot raise errors
 from matplotlib import pyplot as plt
@@ -109,8 +110,9 @@ def spice_bench(vtm,ts,wd,k,tag=None,plot=False):
     return stf,sff
 
 
-if __name__== '__main__':
-    
+def get_options() -> dict:
+    """Function to parse the simulation parameter provided when using the CLI
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--btm',type=float,default=0.0,help="Begin time step")
     parser.add_argument('--ftm',type=float,default=0.2,help="Final time step")
@@ -122,9 +124,27 @@ if __name__== '__main__':
     parser.add_argument('--k',type=int,nargs="*",default=[1],help="Dominant frequency")
     parser.add_argument('--ps',action='store_true',default=False,help='Plot single?')
     parser.add_argument('--pc',action='store_true',default=False,help='Plot comparison?')
-
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     opt = parser.parse_args().__dict__
-     
+
+    return opt
+
+def sem_simul(opt: dict) -> tuple[dict, dict]:
+    """Function to interact with SEM3D simulation.
+
+    Args:
+        opt: list of the options to analyse 
+             the simulation provided either 
+             way directly through a dictionnary 
+             or by using the CLI 
+             (see get_option function)
+
+    Return:
+        return the stf and sff measure (TODO: Filippo for more explanation :) )  
+    """
+
     vtm = np.linspace(opt['btm'],opt['ftm'],opt['npt']+1).reshape(-1,1)
     
     stf={}
@@ -138,7 +158,7 @@ if __name__== '__main__':
         except:
             warnings.warn("k not defined")
             pass
-        tag = "md={}-ts={:>5.2f}s-fc={:>5.2f}Hz".format(md,round(ts,2),round(fc,2))
+        tag = f"md={md}-ts={round(ts,2):>5.2f}s-fc={round(fc,2):>5.2f}Hz"
         if 'gaussian' in md:
             wd = 1./fc
             stf[tag],sff[tag]=gaussian(vtm,ts,wd,tag,opt['ps'])
@@ -148,32 +168,56 @@ if __name__== '__main__':
         elif 'spice_bench' in md:
             wd = 1./fc
             stf[tag],sff[tag]=spice_bench(vtm,ts,wd,k,tag,opt['ps'])
-    
+    return stf, sff
+
+
+def sem_plot(sem_data: tuple[dict, dict]) -> None:
+    """Function to plot SEM3D simulation and save them in two different files
+       `compare_stf.png` and `compare_sff.png`
+
+       Args:
+        sem_data: data obtain from sem3d simulation 
+    """
+    stf, sff = sem_data
+
+    plt.figure(figsize=(12,5))
+    for i in range(len(opt['model'])):
+        md = opt['model'][i].lower()
+        ts = opt['ts'][i]
+        fc = opt['fc'][i]
+        tag = f"md={md}-ts={round(ts,2):>5.2f}s-fc={round(fc,2):>5.2f}Hz"
+        plt.plot(stf[tag][:,0], stf[tag][:,1], linewidth=3,
+                    label=tag)
+    plt.xlabel(r'$\mathbf{t [s]}$',fontsize=14)
+    plt.ylabel(r'$\mathbf{STF}$',fontsize=14)
+    plt.legend()
+    plt.savefig('compare_stf.png',bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(5,5))
+    for i in range(len(opt['model'])):
+        md = opt['model'][i].lower()
+        ts = opt['ts'][i]
+        fc = opt['fc'][i]
+        tag = f"md={md}-ts={round(ts,2):>5.2f}s-fc={round(fc,2):>5.2f}Hz"
+        plt.loglog(np.real(sff[tag][:,0]), np.abs(sff[tag][:,1]), linewidth=3,
+                    label=tag)
+    plt.xlabel(r'$\mathbf{f [Hz]}$',fontsize=14)
+    plt.ylabel(r'$\mathbf{STF}$',fontsize=14)
+    plt.xlim(10**-1,10**2)
+    plt.legend()
+    plt.savefig('compare_sff.png',bbox_inches='tight')
+    plt.close()
+
+
+def main(opt : dict|None = None):
+    if opt is None:
+        opt = get_options()
+    stf, sff = sem_simul(opt)
     if opt['pc']:
-        plt.figure(figsize=(12,5))
-        for i in range(len(opt['model'])):
-            md = opt['model'][i].lower()
-            ts = opt['ts'][i]
-            fc = opt['fc'][i]
-            tag = "md={}-ts={:>5.2f}s-fc={:>5.2f}Hz".format(md,round(ts,2),round(fc,2))
-            plt.plot(stf[tag][:,0],stf[tag][:,1],linewidth=3,
-                     label=tag)
-        plt.xlabel(r'$\mathbf{t [s]}$',fontsize=14)
-        plt.ylabel(r'$\mathbf{STF}$',fontsize=14)
-        plt.legend()
-        plt.savefig('compare_stf.png',bbox_inches='tight')
-        plt.close()
-        plt.figure(figsize=(5,5))
-        for i in range(len(opt['model'])):
-            md = opt['model'][i].lower()
-            ts = opt['ts'][i]
-            fc = opt['fc'][i]
-            tag = "md={}-ts={:>5.2f}s-fc={:>5.2f}Hz".format(md,round(ts,2),round(fc,2))
-            plt.loglog(np.real(sff[tag][:,0]),np.abs(sff[tag][:,1]),linewidth=3,
-                       label=tag)
-        plt.xlabel(r'$\mathbf{f [Hz]}$',fontsize=14)
-        plt.ylabel(r'$\mathbf{STF}$',fontsize=14)
-        plt.xlim(10**-1,10**2)
-        plt.legend()
-        plt.savefig('compare_sff.png',bbox_inches='tight')
-        plt.close()
+        sem_plot(stf, sff)
+
+
+if __name__== '__main__':
+    main()
+    

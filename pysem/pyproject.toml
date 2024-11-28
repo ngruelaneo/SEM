@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pysem"
+authors = [
+    { name = "Filippo Gatti", email = "filippo.gatti@centralesupelec.fr" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "h5py",
+]
+version = "0.0"
+#dynamic = ["version"]
+
+#[tool.setuptools_scm]
+#write_to = "src/pysem/_version.py"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ['tests']
+
+[project.optional-dependencies]
+tests = [
+    'coverage',
+    'pytest',
+    'pytest-cov',
+    'requests_mock'
+]
+dev = [
+    'mypy',
+    'ruff',
+    'bandit',
+    "pre-commit",
+    "isort"
+]
+parse_h5_snapshots = [
+    "mpi4py"
+]
+
+[project.scripts]
+compute_pml_length = "pysem.compute_pml_length:main"
+create_stations = "pysem.create_stations:main"
+create_xmf_from_mesh = "pysem.create_xmf_from_mesh:main"
+generate_h5_materials = "pysem.generate_h5_materials:main"
+mt_import_gmsh = "pysem.mt_import_gmsh:main"
+parse_h5_snapshots = "pysem.parse_h5_snapshots:main"
+parse_h5_traces = "pysem.parse_h5_traces:main"
+sem_stf = "pysem.sem_stf:main"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib"
+]
+#log_cli = 1
+
+[tool.coverage.run]
+omit = [
+ ]
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+fix = false
+extend-exclude = ["**/__pycache__/", "build", "*.egg-info"]
+required-version = ">=0.3.3"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+pretty = true
+ignore_missing_imports = true
+disallow_untyped_decorators = false

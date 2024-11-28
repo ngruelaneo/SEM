@@ -4,7 +4,7 @@ Xdmf file from a set of meshes descriptions
 """
 import xml.etree.ElementTree as ET
 import h5py
-from mt.mesh_files import Points, Mesh, ELEMENT_TYPES
+from .mesh_files import Points, Mesh, ELEMENT_TYPES
 import os.path as osp
 
 

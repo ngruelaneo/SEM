@@ -10,6 +10,7 @@ Script to parse and post-process SEM3D traces
 """
 
 # Required modules
+import sys
 import matplotlib as mpl
 mpl.use('Agg') # de-comment if pyplot raise errors
 from matplotlib import pyplot as plt
@@ -305,11 +306,14 @@ def ParseOptions():
     OptionParser.add_argument('@r','@@rdr',type=str,nargs='+',default=['x','y','z'],help='Motion components')
     OptionParser.add_argument('@m','@@mon',type=int,nargs='+',default=[0],help='SEM3DMonitor number')
     OptionParser.add_argument('@p','@@plt',action='store_true',default=True,help='Plot?')
+    if len(sys.argv)==1:
+        OptionParser.print_help(sys.stderr)
+        sys.exit(1)
+
     options = OptionParser.parse_args().__dict__
     return options
 
-if __name__=='__main__':
-    
+def main():
     options = ParseOptions()
     
     print("Parse {} database ({}*.{})\nVariables: {}-Comp: {}".format(options['nam'],options['wkd'],options['fmt'],
@@ -333,4 +337,7 @@ if __name__=='__main__':
     except:
         print("Warning: no stress field defined in database")
         pass
+
+if __name__=='__main__':
+    main()    
     

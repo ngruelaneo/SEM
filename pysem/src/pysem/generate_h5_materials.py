@@ -10,6 +10,7 @@ Script to create h5 material files for SEM3D
             @@step 20 20 20
 """
 # Required modules
+import sys
 import argparse
 import h5py
 import numpy as np
@@ -126,8 +127,7 @@ def write_xdmf(pfx,prop,mat,lims):
             fid.write('</Xdmf>\n')
             fid.close()
 
-if __name__=='__main__':
-    
+def main():
     parser = argparse.ArgumentParser(prefix_chars='@')
     parser.add_argument('@@prop',type=str,nargs='+',default= ['la','mu','ds','vp','vs'],help="list of properties to be generated")
     parser.add_argument('@@tag',type=str,default="linear_gradient",help="tag for material model")
@@ -138,6 +138,9 @@ if __name__=='__main__':
     parser.add_argument('@@step',type=float,nargs='*',default=[10,10,501],help="Numbers of points per direction [nx ny nz]")
     parser.add_argument('@@pfx',type=str,default="linear_gradient",help="File prefix")
     parser.add_argument('@@nu',type=float,default=0.3,help="Poisson's ratio")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     opt = parser.parse_args().__dict__
     
     assert len(opt['xlim'])==2
@@ -171,3 +174,6 @@ if __name__=='__main__':
     write_h5(opt['pfx'],opt['prop'],mat,lims)
     write_xdmf(opt['pfx'],opt['prop'],mat,lims)
     print("Material files generated successfully!")
+
+if __name__=='__main__':
+    main()    

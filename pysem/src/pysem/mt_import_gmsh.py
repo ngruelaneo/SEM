@@ -10,17 +10,17 @@ import os.path as osp
 import numpy as np
 import argparse
 
-try:
-    import mt
-except ImportError:
-    _modname = osp.dirname(__file__)
-    _parent = osp.abspath(_modname)
-    sys.path.append(_parent)
-    del _parent, _modname
+# try:
+#     import pysem.mt
+# except ImportError:
+#     _modname = osp.dirname(__file__)
+#     _parent = osp.abspath(_modname)
+#     sys.path.append(_parent)
+#     del _parent, _modname
 
-import mt
-from mt.xdmf import create_xdmf_structure
-from mt.mesh_files import Mesh
+import pysem.mt
+from pysem.mt.xdmf import create_xdmf_structure
+from pysem.mt.mesh_files import Mesh
 
 
 class Gmsh(object):
@@ -238,6 +238,9 @@ def main():
     parser.add_argument("-c", help="Use color as material", dest="mat", action="store_const", const=2)
     parser.add_argument("input", help="input file in msh format")
     parser.add_argument("output", help="output file (HDF5)")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     opt = parser.parse_args()
 
     mesh = Gmsh()

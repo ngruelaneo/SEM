@@ -12,6 +12,7 @@ Script to compute PML properties for SEM3D
         python3 compute_pml_length.py @@Ax 10.
 """
 # Required modules
+import sys
 import argparse
 import numpy as np
 
@@ -24,7 +25,6 @@ __version__ = "1.0.1"
 __maintainer__ = "Filippo Gatti"
 __email__ = "filippo.gatti@centralesupelec.fr"
 __status__ = "Beta"
-
 
 
 class pml(object):
@@ -44,12 +44,13 @@ class pml(object):
         self.ll=(self.cs/self.fl[1],self.cp/self.fl[0])
         self.kl=(2.*np.pi/self.ll[1],2.*np.pi/self.ll[0])
         self.RC = 10.**(self.RCdb/20.)
-        print("cp: {} m/s".format(self.cp))
-        print("cs: {} m/s".format(self.cs))
-        print("Frequency limits: {} Hz".format(self.fl))
-        print("wave-length limits: {} m".format(self.ll))
-        print("wave-number limits: {} 1/m".format(self.kl))
-        print("Reflection coefficient: {}".format(self.RC))
+        print(f"cp: {self.cp} m/s")
+        print(f"cs: {self.cs} m/s")
+        print(f"Frequency limits: {self.fl} Hz")
+        print(f"wave-length limits: {self.ll} m")
+        print(f"wave-number limits: {self.kl} 1/m")
+        print(f"Reflection coefficient: {self.RC}")
+
     def check(self):
         self.flag = []
         if self.Ax is None:
@@ -79,11 +80,10 @@ class pml(object):
             self.Ax = -0.5*(self.p+1)*np.log(self.RC)/(self.kl[0]*self.PML_lengths**(self.p+1))                      
         elif self.PML_type== 'CPML':
             self.Ax = -0.5/self.PML_lengths*(self.p+1)*self.cp*np.log(self.RC)
-        print("Ax ({}) = {}".format(self.PML_type,self.Ax))
+        print(f"Ax ({self.PML_type}) = {self.Ax}")
 
-if __name__=="__main__":
-    
-    parser = argparse.ArgumentParser(prefix_chars='@')
+def get_options():
+    parser = argparse.ArgumentParser(prefix_chars='@' )
     parser.add_argument('@@cp',type=float,nargs='+',default=[ 700.,1385.,1732.,3500.],help="P-wave speed in each layer")
     parser.add_argument('@@cs',type=float,nargs='+',default=[ 300., 800.,1000.,2000.],help="S-wave speed in each layer")
     parser.add_argument('@@fl',type=float,nargs='+',default=[0.01,30.],help="Frequency limits")
@@ -92,6 +92,17 @@ if __name__=="__main__":
     parser.add_argument('@@Ax',type=float,default=None,help="Ax or d0 coefficient")
     parser.add_argument('@@PML_lengths',type=float,nargs='+',default=None,help="PML length")
     parser.add_argument('@@PML_type',type=str,default="PML",help="PML type [PML|CPML]")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     opt = parser.parse_args().__dict__
     
-    p = pml(**opt)    
+    return opt
+
+def main(opt: dict|None = None):
+    if opt is None:
+        opt = get_options()
+    p = pml(opt)
+
+if __name__=="__main__":
+    main()

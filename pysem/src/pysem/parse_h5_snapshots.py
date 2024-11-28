@@ -12,6 +12,7 @@ Script to compute PML properties for SEM3D
         python3 compute_pml_length.py @@Ax 10.
 """
 # Required modules
+import sys
 import mpi4py
 mpi4py.rc.initialize = False
 mpi4py.rc.finalize = False
@@ -193,6 +194,10 @@ def ParseCL():
                                                             'eps_dev_xy','eps_dev_yz',
                                                             'eps_dev_xz'],
                         help="Select snapshot")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     opt = parser.parse_args().__dict__
     
     return opt

@@ -1,5 +1,5 @@
-import numpy as np
 import os.path as osp
+import numpy as np
 
 class KlassName(object):
     def __get__(self, obj, cls=None):

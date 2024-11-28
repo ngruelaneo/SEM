@@ -57,6 +57,10 @@ def main():
     parser = optparse.OptionParser()
     parser.add_option("-p", dest="pattern", default=PATTERN, action="store",
                       help="Pattern for mesh2spec files")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     opts, args=parser.parse_args()
     output = args[0]
 
